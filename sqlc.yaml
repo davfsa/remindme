@@ -1,0 +1,24 @@
+# filename: sqlc.yaml
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "db/queries.sql"
+    schema: "db/schema.sql"
+    codegen:
+      - out: "remindme/db"
+        plugin: python
+        options:
+          package: "remindme.db"
+          emit_init_file: true
+          sql_driver: "asyncpg"
+          model_type: "msgspec"
+          docstrings: "numpy"
+          speedups: true
+          omit_unused_models: true
+          emit_classes: true
+
+plugins:
+  - name: python
+    wasm:
+      url: https://github.com/rayakame/sqlc-gen-better-python/releases/download/v0.4.4/sqlc-gen-better-python.wasm
+      sha256: b0d544244edd80dfd4c768c23c133ae7e3a00d03978e33efa5ddaa55ea2845e0

@@ -1,0 +1,56 @@
+[project]
+name = "remindme"
+version = "0.1.0"
+description = "A friendly personal reminder Discord bot"
+readme = "README.md"
+requires-python = ">=3.13"
+classifiers = ["Private :: Do not Upload"]
+dependencies = [
+    "hikari[speedups]~=2.3",
+    "hikari-lightbulb[crontrigger]~=3.0",
+    "confspec~=0.0.3",
+    "ruamel-yaml~=0.18",
+    "msgspec~=0.19",
+    "asyncpg~=0.30",
+    "dateparser~=1.2",
+    # Temporary until https://github.com/aio-libs/aiodns/issues/128 is fixed
+    "aiodns==3.2.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff==0.11.13",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = 80
+quote-style = "double"
+line-ending = "lf"
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+# https://docs.astral.sh/ruff/rules/
+select = ["ALL"]
+ignore = [
+    "S101", # Use of assert detected (we use it for typing and testing purposes)
+    "COM812", # Missing trailing comma (interferes with the formatter)
+    "SLOT000", # Subclasses of X should define `__slots__` (too many false positives, we use slotscheck instead)
+    "SIM105", # Use `contextlib.suppress` (worst for performance)
+    "SIM110", # Use `any`/`all` (worst for performance)
+    "ERA001", # Found commented out code
+    "TD", # TODO
+    "FIX", # TODO
+    "D", # Docstrings
+]
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+force-single-line = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
