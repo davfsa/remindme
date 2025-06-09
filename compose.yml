@@ -37,7 +37,7 @@ services:
     environment:
       NO_AUTOUPDATE: true
       TUNNEL_TOKEN: $CLOUDFLARE_TUNNEL_TOKEN
-    command: 'tunnel --no-autoupdate run'
+    command: "tunnel -p http2 --no-autoupdate run"
 
 volumes:
   postgres-data:
