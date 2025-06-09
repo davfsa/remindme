@@ -1,6 +1,6 @@
 token: "${DISCORD_TOKEN}"
 public_key: "${DISCORD_PUBLIC_KEY}"
-port: "${PORT:9876}"
+port: "${PORT:8080}"
 
 db:
   host: "${POSTGRES_HOST:localhost}"

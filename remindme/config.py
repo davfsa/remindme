@@ -8,7 +8,7 @@ class Config(msgspec.Struct, kw_only=True):
 
     token: str
     public_key: str
-    port: int = 9876
+    port: int
     db: DatabaseConfig
 
 
@@ -16,7 +16,7 @@ class DatabaseConfig(msgspec.Struct, kw_only=True):
     """Database configuration."""
 
     host: str
-    port: int = 5432
+    port: int
     database: str
     username: str
     password: str
