@@ -31,6 +31,14 @@ INSERT INTO dm_channels (user_id, channel_id)
 VALUES ($1, $2)
 """
 
+ADD_REMINDER_REFERENCE_MESSAGE: typing.Final[str] = """-- name: AddReminderReferenceMessage :exec
+UPDATE reminders
+SET reference_message_id=$1,
+    reference_channel_id=$2,
+    reference_guild_id=$3
+WHERE id = $4
+"""
+
 CREATE_REMINDER: typing.Final[str] = """-- name: CreateReminder :one
 INSERT INTO reminders (user_id, description, expire_at)
 VALUES ($1, $2, $3)
@@ -190,6 +198,27 @@ class Queries:
 
         """
         await self._conn.execute(ADD_DM_CHANNEL, user_id, channel_id)
+
+    async def add_reminder_reference_message(self, *, reference_message_id: int | None, reference_channel_id: int | None, reference_guild_id: int | None, id_: int) -> None:
+        """Execute SQL query with `name: AddReminderReferenceMessage :exec`.
+
+        ```sql
+        UPDATE reminders
+        SET reference_message_id=$1,
+            reference_channel_id=$2,
+            reference_guild_id=$3
+        WHERE id = $4
+        ```
+
+        Parameters
+        ----------
+        reference_message_id : int | None
+        reference_channel_id : int | None
+        reference_guild_id : int | None
+        id_ : int
+
+        """
+        await self._conn.execute(ADD_REMINDER_REFERENCE_MESSAGE, reference_message_id, reference_channel_id, reference_guild_id, id_)
 
     async def create_reminder(self, *, user_id: int, description: str, expire_at: datetime.datetime) -> models.Reminder | None:
         """Fetch one from the db using the SQL query with `name: CreateReminder :one`.

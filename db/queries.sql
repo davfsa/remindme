@@ -14,6 +14,13 @@ INSERT INTO reminders (user_id, description, expire_at, reference_message_id, re
 VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
+-- name: AddReminderReferenceMessage :exec
+UPDATE reminders
+SET reference_message_id=$1,
+    reference_channel_id=$2,
+    reference_guild_id=$3
+WHERE id = $4;
+
 -- name: DeleteReminder :exec
 DELETE
 FROM reminders

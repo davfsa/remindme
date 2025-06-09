@@ -26,5 +26,18 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+
+    depends_on:
+      - bot
+
+    env_file: .env
+    environment:
+      NO_AUTOUPDATE: true
+      TUNNEL_TOKEN: $CLOUDFLARE_TUNNEL_TOKEN
+    command: 'tunnel --no-autoupdate run'
+
 volumes:
   postgres-data:

@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 classifiers = ["Private :: Do not Upload"]
 dependencies = [
-    "hikari[speedups]~=2.3",
+    "hikari[server,speedups]~=2.3",
     "hikari-lightbulb[crontrigger]~=3.0",
     "confspec~=0.0.3",
     "ruamel-yaml~=0.18",

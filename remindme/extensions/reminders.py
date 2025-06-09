@@ -21,7 +21,7 @@ loader = lightbulb.Loader()
 
 
 class RemindMeModal(lightbulb.components.Modal):
-    __slots__ = ("_target", "description", "public", "when")
+    __slots__ = ("_target", "description", "public_ack", "when")
 
     def __init__(self, target: hikari.Message) -> None:
         self._target = target
@@ -29,11 +29,13 @@ class RemindMeModal(lightbulb.components.Modal):
         self.description = self.add_short_text_input(
             "Description", placeholder="Linked message content", required=False
         )
-        self.public = self.add_short_text_input("Make it public?", value="true", placeholder="false", required=False)
+        self.public_ack = self.add_short_text_input(
+            "Make the acknowledgement public?", value="true", placeholder="false", required=False
+        )
 
     @lightbulb.di.with_di
     async def on_submit(self, ctx: lightbulb.components.ModalContext, queries: db_queries.Queries) -> None:
-        public = ctx.value_for(self.public).lower() == "true"
+        public = ctx.value_for(self.public_ack).lower() == "true"
         description = ctx.value_for(self.description) or self._target.content or "*Linked message*"
 
         await create_reminder(
@@ -41,7 +43,7 @@ class RemindMeModal(lightbulb.components.Modal):
             queries=queries,
             description=description,
             when_str=ctx.value_for(self.when),
-            public=public,
+            public_ack=public,
             reference_message=self._target,
         )
 
@@ -49,13 +51,13 @@ class RemindMeModal(lightbulb.components.Modal):
 @loader.command
 class RemindMeSlash(lightbulb.SlashCommand, name="remindme", description="Create a reminder"):
     description = lightbulb.string("description", "What do you want to be reminded about?", max_length=4000)
-    when = lightbulb.string("when", "When do you want to be reminded?")
-    public = lightbulb.boolean("public", "Whether to send it as a public message", default=True)
+    when = lightbulb.string("when", "When do you want to be reminded?", max_length=100)
+    public_ack = lightbulb.boolean("public_ack", "Whether to send a public acknowledgement", default=True)
 
     @lightbulb.invoke
     async def invoke(self, ctx: lightbulb.Context, queries: db_queries.Queries) -> None:
         await create_reminder(
-            ctx=ctx, queries=queries, description=self.description, when_str=self.when, public=self.public
+            ctx=ctx, queries=queries, description=self.description, when_str=self.when, public_ack=self.public_ack
         )
 
 
@@ -119,7 +121,7 @@ async def create_reminder(
     when_str: str,
     description: str,
     queries: db_queries.Queries,
-    public: bool,
+    public_ack: bool,
     reference_message: hikari.Message | None = None,
 ) -> None:
     now = datetime.datetime.now(tz=datetime.UTC)
@@ -146,7 +148,18 @@ async def create_reminder(
     else:
         reminder = await queries.create_reminder(user_id=ctx.user.id, expire_at=when, description=description)
 
-    await ctx.respond(components=make_create_reminder_component(reminder), ephemeral=not public)
+    response_id = await ctx.respond(components=make_create_reminder_component(reminder), ephemeral=not public_ack)
+
+    if public_ack and reference_message is None:
+        if response_id == -1:
+            response_id = (await ctx.fetch_response(response_id)).id
+
+        await queries.add_reminder_reference_message(
+            id_=reminder.id,
+            reference_message_id=response_id,
+            reference_channel_id=ctx.channel_id,
+            reference_guild_id=ctx.guild_id,
+        )
 
 
 async def send_reminder(reminder: models.Reminder, *, queries: db_queries.Queries, rest: hikari.api.RESTClient) -> None:

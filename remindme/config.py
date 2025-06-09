@@ -7,6 +7,8 @@ class Config(msgspec.Struct, kw_only=True):
     """Base configuration."""
 
     token: str
+    public_key: str
+    port: int = 9876
     db: DatabaseConfig
 
 
