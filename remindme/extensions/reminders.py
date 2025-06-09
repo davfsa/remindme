@@ -18,7 +18,7 @@ from remindme.utils import reminders as utils
 logger = logging.getLogger("remindme.ext.reminders")
 loader = lightbulb.Loader()
 
-REMINDER_POST_EXPIRE_LIFETIME = datetime.timedelta(minutes=10)
+REMINDER_POST_EXPIRE_LIFETIME = datetime.timedelta(hours=1)
 
 
 class RemindMeModal(lightbulb.components.Modal):
