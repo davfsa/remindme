@@ -20,13 +20,11 @@ def _dehumanize_time(when_str: str) -> datetime.datetime | None:
     now = datetime.datetime.now(tz=datetime.UTC)
 
     # noinspection PyTypeChecker
-    when = dateparser.parse(when_str, settings={"RETURN_AS_TIMEZONE_AWARE": True, "RELATIVE_BASE": now})
-    if when is None:
+    when = dateparser.parse(
+        when_str, settings={"RETURN_AS_TIMEZONE_AWARE": True, "RELATIVE_BASE": now, "PREFER_DATES_FROM": "future"}
+    )
+    if when is None or when < now:
         return None
-
-    if when < now:
-        # Transform to future time
-        when = now + (now - when)
 
     return when
 
