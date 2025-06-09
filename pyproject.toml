@@ -6,15 +6,14 @@ readme = "README.md"
 requires-python = ">=3.13"
 classifiers = ["Private :: Do not Upload"]
 dependencies = [
-    "hikari[server,speedups]~=2.3",
+    # FIXME: Temp disable speedups until https://github.com/aio-libs/aiodns/issues/128 is fixed
+    "hikari[server]~=2.3",
     "hikari-lightbulb[crontrigger]~=3.0",
     "confspec~=0.0.3",
     "ruamel-yaml~=0.18",
     "msgspec~=0.19",
     "asyncpg~=0.30",
     "dateparser~=1.2",
-    # Temporary until https://github.com/aio-libs/aiodns/issues/128 is fixed
-    "aiodns==3.2.0",
 ]
 
 [dependency-groups]
