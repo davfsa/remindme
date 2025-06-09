@@ -6,10 +6,11 @@ CREATE TABLE IF NOT EXISTS reminders
     expire_at            TIMESTAMP WITH TIME ZONE NOT NULL,
     reference_message_id BIGINT,
     reference_channel_id BIGINT,
-    reference_guild_id   BIGINT
+    reference_guild_id   BIGINT,
+    handled              BOOLEAN DEFAULT FALSE    NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_reminders_expire_at ON reminders (expire_at DESC);
+CREATE INDEX IF NOT EXISTS idx_reminders_expire_at ON reminders (expire_at DESC) WHERE handled = FALSE;
 
 CREATE TABLE IF NOT EXISTS dm_channels
 (

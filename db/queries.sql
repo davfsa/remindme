@@ -1,13 +1,27 @@
+-- name: GetReminder :one
+SELECT *
+FROM reminders
+WHERE id = $1;
+
 -- name: GetExpiredReminders :many
 SELECT *
 FROM reminders
-WHERE expire_at < NOW();
+WHERE expire_at < NOW()
+  AND handled = FALSE;
+
+-- name: GetHandledReminders :many
+SELECT *
+FROM reminders
+WHERE handled = TRUE
+  AND expire_at < $1;
+;
 
 -- name: CreateReminder :one
 INSERT INTO reminders (user_id, description, expire_at)
 VALUES ($1, $2, $3)
 RETURNING *;
 ;
+
 
 -- name: CreateReminderWithReference :one
 INSERT INTO reminders (user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id)
@@ -20,6 +34,18 @@ SET reference_message_id=$1,
     reference_channel_id=$2,
     reference_guild_id=$3
 WHERE id = $4;
+
+-- name: MarkReminderAsHandled :exec
+UPDATE reminders
+SET handled = TRUE
+WHERE id = $1;
+
+-- name: RescheduleReminder :one
+UPDATE reminders
+SET handled   = FALSE,
+    expire_at = $1
+WHERE id = $2
+RETURNING *;
 
 -- name: DeleteReminder :exec
 DELETE

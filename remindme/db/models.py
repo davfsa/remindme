@@ -29,6 +29,7 @@ class Reminder(msgspec.Struct):
     reference_message_id : int | None
     reference_channel_id : int | None
     reference_guild_id : int | None
+    handled : bool
 
     """
 
@@ -39,3 +40,4 @@ class Reminder(msgspec.Struct):
     reference_message_id: int | None
     reference_channel_id: int | None
     reference_guild_id: int | None
+    handled: bool

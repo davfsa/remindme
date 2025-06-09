@@ -42,13 +42,13 @@ WHERE id = $4
 CREATE_REMINDER: typing.Final[str] = """-- name: CreateReminder :one
 INSERT INTO reminders (user_id, description, expire_at)
 VALUES ($1, $2, $3)
-RETURNING id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id
+RETURNING id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
 """
 
 CREATE_REMINDER_WITH_REFERENCE: typing.Final[str] = """-- name: CreateReminderWithReference :one
 INSERT INTO reminders (user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id
+RETURNING id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
 """
 
 DELETE_REMINDER: typing.Final[str] = """-- name: DeleteReminder :exec
@@ -64,9 +64,37 @@ WHERE user_id = $1
 """
 
 GET_EXPIRED_REMINDERS: typing.Final[str] = """-- name: GetExpiredReminders :many
-SELECT id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id
+SELECT id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
 FROM reminders
 WHERE expire_at < NOW()
+  AND handled = FALSE
+"""
+
+GET_HANDLED_REMINDERS: typing.Final[str] = """-- name: GetHandledReminders :many
+SELECT id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
+FROM reminders
+WHERE handled = TRUE
+  AND expire_at < $1
+"""
+
+GET_REMINDER: typing.Final[str] = """-- name: GetReminder :one
+SELECT id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
+FROM reminders
+WHERE id = $1
+"""
+
+MARK_REMINDER_AS_HANDLED: typing.Final[str] = """-- name: MarkReminderAsHandled :exec
+UPDATE reminders
+SET handled = TRUE
+WHERE id = $1
+"""
+
+RESCHEDULE_REMINDER: typing.Final[str] = """-- name: RescheduleReminder :one
+UPDATE reminders
+SET handled   = FALSE,
+    expire_at = $1
+WHERE id = $2
+RETURNING id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
 """
 
 
@@ -226,7 +254,7 @@ class Queries:
         ```sql
         INSERT INTO reminders (user_id, description, expire_at)
         VALUES ($1, $2, $3)
-        RETURNING id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id
+        RETURNING id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
         ```
 
         Parameters
@@ -244,7 +272,7 @@ class Queries:
         row = await self._conn.fetchrow(CREATE_REMINDER, user_id, description, expire_at)
         if row is None:
             return None
-        return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6])
+        return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6], handled=row[7])
 
     async def create_reminder_with_reference(self, *, user_id: int, description: str, expire_at: datetime.datetime, reference_message_id: int | None, reference_channel_id: int | None, reference_guild_id: int | None) -> models.Reminder | None:
         """Fetch one from the db using the SQL query with `name: CreateReminderWithReference :one`.
@@ -252,7 +280,7 @@ class Queries:
         ```sql
         INSERT INTO reminders (user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id)
         VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id
+        RETURNING id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
         ```
 
         Parameters
@@ -273,7 +301,7 @@ class Queries:
         row = await self._conn.fetchrow(CREATE_REMINDER_WITH_REFERENCE, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id)
         if row is None:
             return None
-        return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6])
+        return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6], handled=row[7])
 
     async def delete_reminder(self, *, id_: int) -> None:
         """Execute SQL query with `name: DeleteReminder :exec`.
@@ -319,9 +347,10 @@ class Queries:
         """Fetch many from the db using the SQL query with `name: GetExpiredReminders :many`.
 
         ```sql
-        SELECT id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id
+        SELECT id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
         FROM reminders
         WHERE expire_at < NOW()
+          AND handled = FALSE
         ```
 
         Returns
@@ -331,5 +360,96 @@ class Queries:
 
         """
         def _decode_hook(row: asyncpg.Record) -> models.Reminder:
-            return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6])
+            return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6], handled=row[7])
         return QueryResults[models.Reminder](self._conn, GET_EXPIRED_REMINDERS, _decode_hook)
+
+    def get_handled_reminders(self, *, expire_at: datetime.datetime) -> QueryResults[models.Reminder]:
+        """Fetch many from the db using the SQL query with `name: GetHandledReminders :many`.
+
+        ```sql
+        SELECT id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
+        FROM reminders
+        WHERE handled = TRUE
+          AND expire_at < $1
+        ```
+
+        Parameters
+        ----------
+        expire_at : datetime.datetime
+
+        Returns
+        -------
+        QueryResults[models.Reminder]
+            Helper class that allows both iteration and normal fetching of data from the db.
+
+        """
+        def _decode_hook(row: asyncpg.Record) -> models.Reminder:
+            return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6], handled=row[7])
+        return QueryResults[models.Reminder](self._conn, GET_HANDLED_REMINDERS, _decode_hook, expire_at)
+
+    async def get_reminder(self, *, id_: int) -> models.Reminder | None:
+        """Fetch one from the db using the SQL query with `name: GetReminder :one`.
+
+        ```sql
+        SELECT id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
+        FROM reminders
+        WHERE id = $1
+        ```
+
+        Parameters
+        ----------
+        id_ : int
+
+        Returns
+        -------
+        models.Reminder
+            Result fetched from the db. Will be `None` if not found.
+
+        """
+        row = await self._conn.fetchrow(GET_REMINDER, id_)
+        if row is None:
+            return None
+        return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6], handled=row[7])
+
+    async def mark_reminder_as_handled(self, *, id_: int) -> None:
+        """Execute SQL query with `name: MarkReminderAsHandled :exec`.
+
+        ```sql
+        UPDATE reminders
+        SET handled = TRUE
+        WHERE id = $1
+        ```
+
+        Parameters
+        ----------
+        id_ : int
+
+        """
+        await self._conn.execute(MARK_REMINDER_AS_HANDLED, id_)
+
+    async def reschedule_reminder(self, *, expire_at: datetime.datetime, id_: int) -> models.Reminder | None:
+        """Fetch one from the db using the SQL query with `name: RescheduleReminder :one`.
+
+        ```sql
+        UPDATE reminders
+        SET handled   = FALSE,
+            expire_at = $1
+        WHERE id = $2
+        RETURNING id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
+        ```
+
+        Parameters
+        ----------
+        expire_at : datetime.datetime
+        id_ : int
+
+        Returns
+        -------
+        models.Reminder
+            Result fetched from the db. Will be `None` if not found.
+
+        """
+        row = await self._conn.fetchrow(RESCHEDULE_REMINDER, expire_at, id_)
+        if row is None:
+            return None
+        return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6], handled=row[7])

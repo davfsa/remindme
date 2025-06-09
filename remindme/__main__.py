@@ -5,6 +5,7 @@ import confspec
 import hikari
 import lightbulb
 
+from remindme import component_handler
 from remindme import config as configuration
 from remindme import extensions
 from remindme.db import queries as db_queries
@@ -34,7 +35,14 @@ async def start_client(_: hikari.RESTBot) -> None:
     queries = db_queries.Queries(pool)
     default_registry.register_value(db_queries.Queries, queries)
 
-    await client.load_extensions_from_package(extensions, recursive=True)
+    token = component_handler.handler.set(ch := component_handler.ComponentHandler(client))
+    default_registry.register_value(component_handler.ComponentHandler, ch)
+
+    try:
+        await client.load_extensions_from_package(extensions, recursive=True)
+    finally:
+        component_handler.handler.reset(token)
+
     await client.start()
 
 

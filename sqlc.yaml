@@ -13,7 +13,6 @@ sql:
           sql_driver: "asyncpg"
           model_type: "msgspec"
           docstrings: "numpy"
-          speedups: true
           omit_unused_models: true
           emit_classes: true
 
