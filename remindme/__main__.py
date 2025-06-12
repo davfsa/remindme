@@ -12,7 +12,7 @@ from remindme.db import queries as db_queries
 
 config = confspec.load("config.yml", cls=configuration.Config)
 
-bot = hikari.GatewayBot(token=config.token)
+bot = hikari.RESTBot(token=config.token, public_key=config.public_key)
 client = lightbulb.client_from_app(bot)
 
 
@@ -20,8 +20,7 @@ async def pool_teardown(pool: asyncpg.pool.Pool) -> None:
     await pool.close()
 
 
-@bot.listen()
-async def start_client(_: hikari.StartingEvent) -> None:
+async def start_client(_: hikari.RESTBot) -> None:
     default_registry = client.di.registry_for(lightbulb.di.Contexts.DEFAULT)
 
     pool = await asyncpg.create_pool(
@@ -47,9 +46,11 @@ async def start_client(_: hikari.StartingEvent) -> None:
     await client.start()
 
 
-@bot.listen()
-async def stop_client(_: hikari.StoppedEvent) -> None:
+async def stop_client(_: hikari.RESTBot) -> None:
     await client.stop()
 
 
-bot.run()
+bot.add_startup_callback(start_client)
+bot.add_shutdown_callback(stop_client)
+
+bot.run(port=config.port)
