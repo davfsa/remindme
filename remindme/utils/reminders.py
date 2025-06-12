@@ -38,6 +38,8 @@ async def create_reminder(
     public_ack: bool,
     reference_message: hikari.Message | None = None,
 ) -> None:
+    await ctx.defer(ephemeral=not public_ack)
+
     when = _dehumanize_time(when_str)
     if when is None:
         await ctx.respond("Unknown time format", ephemeral=True)
@@ -78,6 +80,8 @@ async def create_reminder(
 async def reschedule_reminder(
     ctx: ContextT, reminder: models.Reminder, when_str: str, queries: db_queries.Queries
 ) -> None:
+    await ctx.defer(ephemeral=True)
+
     when = _dehumanize_time(when_str)
     if when is None:
         await ctx.respond("Unknown time format", ephemeral=True)
