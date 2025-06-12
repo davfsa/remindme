@@ -51,40 +51,18 @@ class ComponentHandler:
         self._client = client
 
         app = client.app
-        assert isinstance(app, hikari.InteractionServerAware)
-        app.interaction_server.set_listener(hikari.ComponentInteraction, self._handle_interaction, replace=True)
+        assert isinstance(app, hikari.EventManagerAware)
+        app.event_manager.subscribe(hikari.ComponentInteractionCreateEvent, self._handle_interaction)
 
-    async def _handle_interaction(self, interaction: hikari.ComponentInteraction) -> typing.AsyncGenerator[None]:
+    async def _handle_interaction(self, event: hikari.ComponentInteractionCreateEvent) -> None:
+        interaction = event.interaction
         callback = self._handlers.get(interaction.custom_id.split(":")[0])
 
         if not callback:
             msg = f"No callback found for id: {interaction.custom_id}"
             raise RuntimeError(msg)
 
-        ctx = ComponentContext(self._client, interaction, (ir := asyncio.Event()))
-        callback_task = asyncio.create_task(self._handle_with_context(ctx, callback))
-        event_wait_task = asyncio.create_task(ir.wait())
-        tasks = (event_wait_task, callback_task)
-
-        finished, unfinished = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-
-        yield None
-
-        if callback_task not in finished:
-            await callback_task
-
-        for task in tasks:
-            if task.done():
-                continue
-
-            task.cancel()
-
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-
-    async def _handle_with_context(self, ctx: ComponentContext, callback: ComponentCallbackT) -> None:
+        ctx = ComponentContext(self._client, interaction, asyncio.Event())
         async with self._client.di.enter_context(lightbulb.di.Contexts.DEFAULT):
             await callback(ctx)
 
