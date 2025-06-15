@@ -18,7 +18,7 @@ from remindme.utils import reminders as utils
 logger = logging.getLogger("remindme.ext.reminders")
 loader = lightbulb.Loader()
 
-REMINDER_POST_EXPIRE_LIFETIME = datetime.timedelta(hours=1)
+REMINDER_POST_EXPIRE_LIFETIME = datetime.timedelta(hours=3)
 
 
 class RemindMeModal(lightbulb.components.Modal):
@@ -26,7 +26,7 @@ class RemindMeModal(lightbulb.components.Modal):
 
     def __init__(self, target: hikari.Message) -> None:
         self._target = target
-        self.when = self.add_short_text_input("When to get alerted")
+        self.when = self.add_short_text_input("When to get reminded")
         self.description = self.add_short_text_input(
             "Description", placeholder="Linked message content", required=False
         )
@@ -79,7 +79,7 @@ class RemindMeMessageCommand(
         await ctx.respond_with_modal("Create a reminder", c_id := str(uuid.uuid4()), components=modal)
 
         try:
-            await modal.attach(ctx.client, c_id, timeout=30)
+            await modal.attach(ctx.client, c_id, timeout=60)
         except TimeoutError:
             pass
 
