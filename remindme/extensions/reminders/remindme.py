@@ -21,7 +21,7 @@ class RemindMeSlashCommand(lightbulb.SlashCommand, name="remindme", description=
 
     when = lightbulb.string("when", "When do you want to be reminded?", max_length=100)
     description = lightbulb.string(
-        "description", "What do you want to be reminded about?", max_length=4000, default="*No description provided*"
+        "description", "What do you want to be reminded about?", max_length=4000, default=None
     )
     public_ack = lightbulb.boolean("public_ack", "Whether to send a public acknowledgement", default=True)
 
@@ -108,7 +108,7 @@ async def create_submit(ctx: interaction_handlers.ModalContext, queries: db.Quer
     await utils.create_reminder(
         ctx=ctx,
         queries=queries,
-        description=ctx.values["description"] or "*No description provided*",
+        description=ctx.values["description"],
         when_str=ctx.values["when"],
         public_ack=ctx.values["public_ack"].lower() == "true",
         reference_guild_id=int(ctx.arguments[0]),

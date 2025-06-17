@@ -46,7 +46,7 @@ async def create_reminder(
     *,
     ctx: ScheduleContextT,
     when_str: str,
-    description: str,
+    description: str | None,
     queries: db.Queries,
     public_ack: bool,
     reference_message_id: int | None = None,
@@ -54,6 +54,8 @@ async def create_reminder(
     reference_guild_id: int | None = None,
 ) -> None:
     await ctx.defer(ephemeral=not public_ack)
+
+    description = description or "*No description provided*"
 
     when = _dehumanize_time(when_str)
     if when is None:
