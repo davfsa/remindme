@@ -5,10 +5,11 @@ import confspec
 import hikari
 import lightbulb
 
-from remindme import component_handler
 from remindme import config as configuration
+from remindme import db
 from remindme import extensions
-from remindme.db import queries as db_queries
+from remindme.interaction_handlers import components as components_interaction_handler
+from remindme.interaction_handlers import modals as modals_interaction_handler
 
 config = confspec.load("config.yml", cls=configuration.Config)
 
@@ -16,7 +17,7 @@ bot = hikari.RESTBot(token=config.token, public_key=config.public_key)
 client = lightbulb.client_from_app(bot)
 
 
-async def pool_teardown(pool: asyncpg.pool.Pool) -> None:
+async def pool_teardown(pool: asyncpg.Pool) -> None:
     await pool.close()
 
 
@@ -31,17 +32,21 @@ async def start_client(_: hikari.RESTBot) -> None:
         password=config.db.password,
     )
     default_registry.register_value(asyncpg.Pool, pool, teardown=pool_teardown)
+    default_registry.register_value(db.Queries, db.Queries(pool))  # type: ignore
 
-    queries = db_queries.Queries(pool)
-    default_registry.register_value(db_queries.Queries, queries)
+    component_token = components_interaction_handler.handler.set(
+        ch := components_interaction_handler.ComponentHandler(client)
+    )
+    default_registry.register_value(components_interaction_handler.ComponentHandler, ch)
 
-    token = component_handler.handler.set(ch := component_handler.ComponentHandler(client))
-    default_registry.register_value(component_handler.ComponentHandler, ch)
+    modal_token = modals_interaction_handler.handler.set(ch := modals_interaction_handler.ModalHandler(client))
+    default_registry.register_value(modals_interaction_handler.ModalHandler, ch)
 
     try:
         await client.load_extensions_from_package(extensions, recursive=True)
     finally:
-        component_handler.handler.reset(token)
+        components_interaction_handler.handler.reset(component_token)
+        modals_interaction_handler.handler.reset(modal_token)
 
     await client.start()
 

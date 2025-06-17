@@ -9,7 +9,7 @@ sql:
         plugin: python
         options:
           package: "remindme.db"
-          emit_init_file: true
+          emit_init_file: false
           sql_driver: "asyncpg"
           model_type: "msgspec"
           docstrings: "numpy"

@@ -4,21 +4,28 @@ import typing
 
 import hikari
 
-from remindme.utils import constants
+from remindme.utils import keys
 
 if typing.TYPE_CHECKING:
+    import datetime
+
     from remindme.db import models
 
 
 def make_reminder_component(
-    reminder: models.Reminder, *, snoozed: bool = False
+    reminder: models.Reminder, *, snoozed_until: datetime.datetime | None = None
 ) -> typing.Sequence[hikari.api.ComponentBuilder]:
     assert reminder.reference_message_id is not None
     assert reminder.reference_channel_id is not None
 
     guild_part = "@me" if reminder.reference_guild_id is None else reminder.reference_guild_id
 
-    top_content = "*Snoozed*" if snoozed else "Reminder!"
+    top_content: str
+    if snoozed_until:
+        timestamp = int(snoozed_until.timestamp())
+        top_content = f"*Snoozed until <t:{timestamp}:F> (<t:{timestamp}:R>)*"
+    else:
+        top_content = "Reminder!"
 
     components: list[hikari.api.ComponentBuilder] = [
         hikari.impl.TextDisplayComponentBuilder(content=top_content),
@@ -37,13 +44,13 @@ def make_reminder_component(
         ),
     ]
 
-    if not snoozed:
+    if not snoozed_until:
         components.append(
             hikari.impl.MessageActionRowBuilder(
                 components=[
                     hikari.impl.TextSelectMenuBuilder(
                         placeholder="Snooze",
-                        custom_id=f"{constants.REMINDER_SNOOZE_SELECT_CUSTOM_ID}:{reminder.id}",
+                        custom_id=keys.make_key(keys.REMINDER_SNOOZE_SELECT, reminder.id),
                         options=[
                             hikari.impl.SelectOptionBuilder(label="10 minutes", value="10 minutes"),
                             hikari.impl.SelectOptionBuilder(label="30 minutes", value="30 minutes"),

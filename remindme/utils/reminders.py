@@ -5,15 +5,20 @@ import typing
 
 import dateparser
 import hikari
-import lightbulb
 
-from remindme import component_handler
+from remindme import db
 from remindme.db import models
-from remindme.db import queries as db_queries
 from remindme.utils import components
 
 if typing.TYPE_CHECKING:
-    type ContextT = lightbulb.Context | lightbulb.components.ModalContext | component_handler.ComponentContext
+    import lightbulb
+
+    from remindme import interaction_handlers
+
+    type ScheduleContextT = (
+        lightbulb.Context | interaction_handlers.ModalContext | interaction_handlers.ComponentContext
+    )
+    type RescheduleContextT = interaction_handlers.ModalContext | interaction_handlers.ComponentContext
 
 
 def _dehumanize_time(when_str: str) -> datetime.datetime | None:
@@ -21,7 +26,15 @@ def _dehumanize_time(when_str: str) -> datetime.datetime | None:
 
     # noinspection PyTypeChecker
     when = dateparser.parse(
-        when_str, settings={"RETURN_AS_TIMEZONE_AWARE": True, "RELATIVE_BASE": now, "PREFER_DATES_FROM": "future"}
+        when_str,
+        settings={
+            "RETURN_AS_TIMEZONE_AWARE": True,
+            "RELATIVE_BASE": now,
+            "PREFER_DATES_FROM": "future",
+            "STRICT_PARSING": True,
+            "PARSERS": ["relative-time", "absolute-time"],
+            "TIMEZONE": "Europe/Berlin",
+        },
     )
     if when is None or when < now:
         return None
@@ -31,12 +44,14 @@ def _dehumanize_time(when_str: str) -> datetime.datetime | None:
 
 async def create_reminder(
     *,
-    ctx: ContextT,
+    ctx: ScheduleContextT,
     when_str: str,
     description: str,
-    queries: db_queries.Queries,
+    queries: db.Queries,
     public_ack: bool,
-    reference_message: hikari.Message | None = None,
+    reference_message_id: int | None = None,
+    reference_channel_id: int | None = None,
+    reference_guild_id: int | None = None,
 ) -> None:
     await ctx.defer(ephemeral=not public_ack)
 
@@ -45,24 +60,28 @@ async def create_reminder(
         await ctx.respond("Unknown time format", ephemeral=True)
         return
 
-    reminder: models.Reminder
-    if reference_message:
+    reminder: models.Reminder | None
+    if reference_message_id is not None:
         reminder = await queries.create_reminder_with_reference(
-            user_id=ctx.user.id,
+            user_id=ctx.interaction.user.id,
             expire_at=when,
             description=description,
-            reference_message_id=reference_message.id,
-            reference_channel_id=reference_message.channel_id,
-            reference_guild_id=reference_message.guild_id,
+            reference_message_id=reference_message_id,
+            reference_channel_id=reference_channel_id,
+            reference_guild_id=reference_guild_id or None,
         )
     else:
-        reminder = await queries.create_reminder(user_id=ctx.user.id, expire_at=when, description=description)
+        reminder = await queries.create_reminder(
+            user_id=ctx.interaction.user.id, expire_at=when, description=description
+        )
+
+    assert reminder is not None
 
     response_id = await ctx.respond(
         components=components.make_create_reminder_component(reminder), ephemeral=not public_ack
     )
 
-    if reference_message is None:
+    if reference_message_id is None:
         response = await ctx.fetch_response(response_id)
 
         # If the message was sent as an ephemeral (either by the users selection or Discords)
@@ -72,13 +91,13 @@ async def create_reminder(
         await queries.add_reminder_reference_message(
             id_=reminder.id,
             reference_message_id=linked_message_id,
-            reference_channel_id=ctx.channel_id,
-            reference_guild_id=ctx.guild_id,
+            reference_channel_id=ctx.interaction.channel_id,
+            reference_guild_id=ctx.interaction.guild_id,
         )
 
 
 async def reschedule_reminder(
-    ctx: ContextT, reminder: models.Reminder, when_str: str, queries: db_queries.Queries
+    ctx: RescheduleContextT, reminder: models.Reminder, when_str: str, original_message_id: int, queries: db.Queries
 ) -> None:
     await ctx.defer(ephemeral=True)
 
@@ -87,12 +106,18 @@ async def reschedule_reminder(
         await ctx.respond("Unknown time format", ephemeral=True)
         return
 
-    reminder = await queries.reschedule_reminder(id_=reminder.id, expire_at=when)
+    updated_reminder = await queries.reschedule_reminder(id_=reminder.id, expire_at=when)
+    assert updated_reminder is not None
 
-    await ctx.respond(components=components.make_create_reminder_component(reminder, snoozed=True), ephemeral=True)
+    await ctx.respond(
+        components=components.make_create_reminder_component(updated_reminder, snoozed=True), ephemeral=True
+    )
+    await ctx.edit_response(
+        original_message_id, components=components.make_reminder_component(reminder, snoozed_until=when)
+    )
 
 
-async def send_reminder(reminder: models.Reminder, *, queries: db_queries.Queries, rest: hikari.api.RESTClient) -> None:
+async def send_reminder(reminder: models.Reminder, *, queries: db.Queries, rest: hikari.api.RESTClient) -> None:
     dm_channel_id = await queries.get_dm_channel_for_user(user_id=reminder.user_id)
     if not dm_channel_id:
         try:
