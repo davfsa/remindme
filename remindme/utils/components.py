@@ -146,7 +146,7 @@ def make_reminder_list_component(
                         custom_id=keys.make_key(keys.REMINDER_VIEW, reminder.id, offset),
                     ),
                     components=[
-                        hikari.impl.TextDisplayComponentBuilder(content=_trim_to_size(reminder.description, size=100)),
+                        hikari.impl.TextDisplayComponentBuilder(content=_trim_to_size(reminder.description, size=500)),
                         hikari.impl.TextDisplayComponentBuilder(content=f"-# <t:{timestamp}:F> (<t:{timestamp}:R>)"),
                     ],
                 ),
