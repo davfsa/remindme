@@ -31,9 +31,8 @@ def _dehumanize_time(when_str: str) -> datetime.datetime | None:
             "RETURN_AS_TIMEZONE_AWARE": True,
             "RELATIVE_BASE": now,
             "PREFER_DATES_FROM": "future",
-            "STRICT_PARSING": True,
             "PARSERS": ["relative-time", "absolute-time"],
-            "TIMEZONE": "Europe/Berlin",
+            "TIMEZONE": "CEST",
         },
     )
     if when is None or when < now:
