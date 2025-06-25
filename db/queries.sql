@@ -27,7 +27,7 @@ SELECT *
 FROM reminders
 WHERE user_id = $1
   AND handled = FALSE
-ORDER BY expire_at DESC
+ORDER BY expire_at
 OFFSET $2 ROWS FETCH NEXT $3 ROWS ONLY;
 
 -- name: CreateReminder :one

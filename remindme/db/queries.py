@@ -95,7 +95,7 @@ SELECT id, user_id, description, expire_at, reference_message_id, reference_chan
 FROM reminders
 WHERE user_id = $1
   AND handled = FALSE
-ORDER BY expire_at DESC
+ORDER BY expire_at
 OFFSET $2 ROWS FETCH NEXT $3 ROWS ONLY
 """
 
@@ -460,7 +460,7 @@ class Queries:
         FROM reminders
         WHERE user_id = $1
           AND handled = FALSE
-        ORDER BY expire_at DESC
+        ORDER BY expire_at
         OFFSET $2 ROWS FETCH NEXT $3 ROWS ONLY
         ```
 
