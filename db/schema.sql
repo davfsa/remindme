@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS reminders
     handled              BOOLEAN DEFAULT FALSE    NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_reminders_expire_at ON reminders (expire_at DESC) WHERE handled = FALSE;
+CREATE INDEX IF NOT EXISTS idx_reminders_expire_at ON reminders (expire_at) WHERE handled = FALSE;
 
 CREATE TABLE IF NOT EXISTS dm_channels
 (
