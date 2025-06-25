@@ -14,10 +14,10 @@ from remindme.utils import reminders as utils
 logger = logging.getLogger("remindme.ext.reminders")
 loader = remindme.Loader()
 
-REMINDER_POST_EXPIRE_LIFETIME = datetime.timedelta(hours=3)
+REMINDER_POST_EXPIRE_LIFETIME = datetime.timedelta(days=1)
 
 
-@loader.task(lightbulb.uniformtrigger(5), auto_start=True, max_failures=-1)
+@loader.task(lightbulb.uniformtrigger(5, wait_first=False), auto_start=True, max_failures=-1)
 async def check_reminders(queries: db.Queries, rest: hikari.api.RESTClient) -> None:
     expired_reminders = await queries.get_expired_reminders()
 

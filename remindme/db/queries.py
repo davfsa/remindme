@@ -83,6 +83,22 @@ FROM reminders
 WHERE id = $1
 """
 
+GET_REMINDERS_COUNT_FOR: typing.Final[str] = """-- name: GetRemindersCountFor :one
+SELECT COUNT(*)
+FROM reminders
+WHERE user_id = $1
+  AND handled = FALSE
+"""
+
+GET_REMINDERS_FOR: typing.Final[str] = """-- name: GetRemindersFor :many
+SELECT id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
+FROM reminders
+WHERE user_id = $1
+  AND handled = FALSE
+ORDER BY expire_at DESC
+OFFSET $2 ROWS FETCH NEXT $3 ROWS ONLY
+"""
+
 MARK_REMINDER_AS_HANDLED: typing.Final[str] = """-- name: MarkReminderAsHandled :exec
 UPDATE reminders
 SET handled = TRUE
@@ -410,6 +426,59 @@ class Queries:
         if row is None:
             return None
         return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6], handled=row[7])
+
+    async def get_reminders_count_for(self, *, user_id: int) -> int | None:
+        """Fetch one from the db using the SQL query with `name: GetRemindersCountFor :one`.
+
+        ```sql
+        SELECT COUNT(*)
+        FROM reminders
+        WHERE user_id = $1
+          AND handled = FALSE
+        ```
+
+        Parameters
+        ----------
+        user_id : int
+
+        Returns
+        -------
+        int
+            Result fetched from the db. Will be `None` if not found.
+
+        """
+        row = await self._conn.fetchrow(GET_REMINDERS_COUNT_FOR, user_id)
+        if row is None:
+            return None
+        return row[0]
+
+    def get_reminders_for(self, *, user_id: int, offset: int, limit: int) -> QueryResults[models.Reminder]:
+        """Fetch many from the db using the SQL query with `name: GetRemindersFor :many`.
+
+        ```sql
+        SELECT id, user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id, handled
+        FROM reminders
+        WHERE user_id = $1
+          AND handled = FALSE
+        ORDER BY expire_at DESC
+        OFFSET $2 ROWS FETCH NEXT $3 ROWS ONLY
+        ```
+
+        Parameters
+        ----------
+        user_id : int
+        offset : int
+        limit : int
+
+        Returns
+        -------
+        QueryResults[models.Reminder]
+            Helper class that allows both iteration and normal fetching of data from the db.
+
+        """
+        def _decode_hook(row: asyncpg.Record) -> models.Reminder:
+            return models.Reminder(id=row[0], user_id=row[1], description=row[2], expire_at=row[3], reference_message_id=row[4], reference_channel_id=row[5], reference_guild_id=row[6], handled=row[7])
+        return QueryResults[models.Reminder](self._conn, GET_REMINDERS_FOR, _decode_hook, user_id, offset, limit)
 
     async def mark_reminder_as_handled(self, *, id_: int) -> None:
         """Execute SQL query with `name: MarkReminderAsHandled :exec`.

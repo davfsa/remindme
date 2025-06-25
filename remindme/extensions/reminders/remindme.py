@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import logging
-
 import lightbulb
 
 import remindme
@@ -11,7 +9,6 @@ from remindme.utils import keys
 from remindme.utils import modals
 from remindme.utils import reminders as utils
 
-logger = logging.getLogger("remindme.ext.reminders")
 loader = remindme.Loader()
 
 

@@ -5,6 +5,6 @@ port: "${PORT:8080}"
 db:
   host: "${POSTGRES_HOST:localhost}"
   port: "${POSTGRES_PORT:5432}"
-  database: "${POSTGRES_DATABASE:postgres}"
+  database: "${POSTGRES_DATABASE:remindme}"
   username: "${POSTGRES_USERNAME:postgres}"
   password: "${POSTGRES_PASSWORD:password}"

@@ -16,12 +16,25 @@ WHERE handled = TRUE
   AND expire_at < $1;
 ;
 
+-- name: GetRemindersCountFor :one
+SELECT COUNT(*)
+FROM reminders
+WHERE user_id = $1
+  AND handled = FALSE;
+
+-- name: GetRemindersFor :many
+SELECT *
+FROM reminders
+WHERE user_id = $1
+  AND handled = FALSE
+ORDER BY expire_at DESC
+OFFSET $2 ROWS FETCH NEXT $3 ROWS ONLY;
+
 -- name: CreateReminder :one
 INSERT INTO reminders (user_id, description, expire_at)
 VALUES ($1, $2, $3)
 RETURNING *;
 ;
-
 
 -- name: CreateReminderWithReference :one
 INSERT INTO reminders (user_id, description, expire_at, reference_message_id, reference_channel_id, reference_guild_id)
