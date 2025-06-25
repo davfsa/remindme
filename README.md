@@ -5,3 +5,5 @@
 </div>
 
 A simple Discord bot written using [hikari](https://github.com/hikari-py/hikari) to add reminders for yourself.
+
+You can install it through [this link!](https://discord.com/oauth2/authorize?client_id=1346853544388726785)
