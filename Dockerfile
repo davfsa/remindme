@@ -6,8 +6,8 @@ ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 # copied from the build image into the final image
 ENV UV_PYTHON_DOWNLOADS=0
 
-# build-base and libffi-dev are used to build some python modules if needed
-RUN apk add --no-cache build-base
+# build-base, libffi-dev and git are used to build some python modules if needed
+RUN apk add --no-cache build-base git
 
 WORKDIR /app
 RUN --mount=type=cache,target=/root/.cache/uv \
