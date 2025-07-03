@@ -30,6 +30,21 @@ class RemindMeSlashCommand(lightbulb.SlashCommand, name="remindme", description=
 
 
 @loader.command
+class RemindMeMenuSlashCommand(
+    lightbulb.SlashCommand, name="remindmemenu", description="Open the reminder create menu"
+):
+    __slots__ = ()
+
+    @lightbulb.invoke
+    async def invoke(self, ctx: lightbulb.Context) -> None:
+        await ctx.respond_with_modal(
+            "Create a reminder",
+            keys.REMINDER_CREATE_MODAL_CUSTOM_ID,
+            components=modals.make_reminder_from_message_modal(""),
+        )
+
+
+@loader.command
 class RemindMeMessageCommand(
     lightbulb.MessageCommand, name="Remind Me", description="Create a reminder about this message"
 ):
@@ -100,15 +115,25 @@ async def snooze_with_custom_time_callback(
     )
 
 
+@loader.modal(keys.REMINDER_CREATE_MODAL_CUSTOM_ID)
 @loader.modal(keys.REMINDER_CREATE_FROM_MESSAGE_MODAL_CUSTOM_ID)
 async def create_submit(ctx: interaction_handlers.ModalContext, queries: db.Queries = lightbulb.di.INJECTED) -> None:
+    if len(ctx.arguments) == 0:
+        reference_guild_id = None
+        reference_channel_id = None
+        reference_message_id = None
+    else:
+        reference_guild_id = int(ctx.arguments[0])
+        reference_channel_id = int(ctx.arguments[1])
+        reference_message_id = int(ctx.arguments[2])
+
     await utils.create_reminder(
         ctx=ctx,
         queries=queries,
         description=ctx.values["description"],
         when_str=ctx.values["when"],
         public_ack=ctx.values["public_ack"].lower() == "true",
-        reference_guild_id=int(ctx.arguments[0]),
-        reference_channel_id=int(ctx.arguments[1]),
-        reference_message_id=int(ctx.arguments[2]),
+        reference_guild_id=reference_guild_id,
+        reference_channel_id=reference_channel_id,
+        reference_message_id=reference_message_id,
     )
