@@ -291,17 +291,13 @@ wheels = [
 
 [[package]]
 name = "hikari"
-version = "2.3.5"
-source = { registry = "https://pypi.org/simple" }
+version = "2.3.6.dev0"
+source = { git = "https://github.com/hikari-py/hikari?rev=4a5cb0370aefd28e8a5391213cec68f88ecf3a1f#4a5cb0370aefd28e8a5391213cec68f88ecf3a1f" }
 dependencies = [
     { name = "aiohttp" },
     { name = "attrs" },
     { name = "colorlog" },
     { name = "multidict" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/85/f9/0d0e2767af45b8b8ee378588f22e4e331f6c3823ac08a396319a65805d3a/hikari-2.3.5.tar.gz", hash = "sha256:33ab457680bb36edea93730952d7bda6174c8c26e5dcfdb9a45b91f0548fb089", size = 1892942, upload-time = "2025-06-25T17:37:18.608Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f9/81/9c4bcb9502d6cb7a8aab04b89006bc9d6e2a274f0bf0e17eeb156aa7d632/hikari-2.3.5-py3-none-any.whl", hash = "sha256:8ee60cbecaef34f77977d8bc7f707bf034c2b04f2c480e081d66e1943a6cdab6", size = 578267, upload-time = "2025-06-25T17:37:16.658Z" },
 ]
 
 [package.optional-dependencies]
@@ -624,7 +620,7 @@ requires-dist = [
     { name = "asyncpg", specifier = "~=0.30" },
     { name = "confspec", specifier = "~=0.0.3" },
     { name = "dateparser", specifier = "~=1.2" },
-    { name = "hikari", extras = ["speedups", "server"], specifier = "~=2.3" },
+    { name = "hikari", extras = ["speedups", "server"], git = "https://github.com/hikari-py/hikari?rev=4a5cb0370aefd28e8a5391213cec68f88ecf3a1f" },
     { name = "hikari-lightbulb", extras = ["crontrigger"], specifier = "~=3.0" },
     { name = "msgspec", specifier = "~=0.19" },
     { name = "ruamel-yaml", specifier = "~=0.18" },

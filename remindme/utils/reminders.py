@@ -6,14 +6,14 @@ import typing
 import dateparser
 import hikari
 
-from remindme import db
-from remindme.db import models
 from remindme.utils import components
 
 if typing.TYPE_CHECKING:
     import lightbulb
 
+    from remindme import db
     from remindme import interaction_handlers
+    from remindme.db import models
 
     type ScheduleContextT = (
         lightbulb.Context | interaction_handlers.ModalContext | interaction_handlers.ComponentContext
