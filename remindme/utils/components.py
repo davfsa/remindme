@@ -153,7 +153,7 @@ def make_reminder_list_component(
             )
         )
 
-        if not (reminder == reminders[-1]):
+        if reminder != reminders[-1]:
             container_components.append(
                 hikari.impl.SeparatorComponentBuilder(divider=False, spacing=hikari.SpacingType.LARGE)
             )
