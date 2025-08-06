@@ -66,7 +66,7 @@ class RemindMeMessageCommand(
 
 @loader.component(keys.REMINDER_SNOOZE_SELECT)
 async def snooze_select_callback(
-    ctx: interaction_handlers.ComponentContext, queries: db.Queries = lightbulb.di.INJECTED
+        ctx: interaction_handlers.ComponentContext, queries: db.Queries = lightbulb.di.INJECTED
 ) -> None:
     reminder_id = int(ctx.arguments[0])
     reminder = await queries.get_reminder(id_=reminder_id)
@@ -80,7 +80,7 @@ async def snooze_select_callback(
     if value == "custom":
         await ctx.respond_with_modal(
             "Choose custom snooze time",
-            custom_id=keys.make_key(keys.REMINDER_SNOOZE_INPUT_CUSTOM, reminder_id),
+            custom_id=keys.make_key(keys.REMINDER_SNOOZE_CUSTOM_MODAL, reminder_id),
             components=modals.snooze_input_custom_modal,
         )
         return
@@ -92,9 +92,9 @@ async def snooze_select_callback(
     )
 
 
-@loader.modal(keys.REMINDER_SNOOZE_INPUT_CUSTOM)
+@loader.modal(keys.REMINDER_SNOOZE_CUSTOM_MODAL)
 async def snooze_with_custom_time_callback(
-    ctx: interaction_handlers.ModalContext, queries: db.Queries = lightbulb.di.INJECTED
+        ctx: interaction_handlers.ModalContext, queries: db.Queries = lightbulb.di.INJECTED
 ) -> None:
     reminder_id = int(ctx.arguments[0])
     reminder = await queries.get_reminder(id_=reminder_id)

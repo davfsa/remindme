@@ -3,7 +3,7 @@ from __future__ import annotations
 REMINDER_SNOOZE_SELECT = "remindme_snooze_select"
 REMINDER_CREATE_MODAL_CUSTOM_ID = "remindme_create_modal"
 REMINDER_CREATE_FROM_MESSAGE_MODAL_CUSTOM_ID = "remindme_create_from_message_modal"
-REMINDER_SNOOZE_INPUT_CUSTOM = "remindme_snooze_custom_modal"
+REMINDER_SNOOZE_CUSTOM_MODAL = "remindme_snooze_custom_modal"
 REMINDER_LIST_MOVE = "remindme_list_move"
 REMINDER_VIEW = "remindme_reminder_view"
 REMINDER_DELETE = "remindme_reminder_delete"
