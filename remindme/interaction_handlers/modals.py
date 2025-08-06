@@ -12,7 +12,7 @@ if typing.TYPE_CHECKING:
     import asyncio
 
 
-handler: contextvars.ContextVar[ModalHandler] = contextvars.ContextVar("component_handler")
+handler: contextvars.ContextVar[ModalHandler] = contextvars.ContextVar("modal_handler")
 
 
 class ModalContext(lightbulb.components.MessageResponseMixinWithEdit[hikari.ModalInteraction]):
