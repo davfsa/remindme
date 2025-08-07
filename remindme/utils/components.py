@@ -9,6 +9,8 @@ from remindme.utils import keys
 if typing.TYPE_CHECKING:
     import datetime
 
+    import hikari.api.special_endpoints
+
     from remindme.db import models
 
 
@@ -133,7 +135,7 @@ def _trim_to_size(text: str, *, size: int) -> str:
 def make_reminder_list_component(
     reminders: typing.Sequence[models.Reminder], *, offset: int, limit: int, total_count: int
 ) -> typing.Sequence[hikari.api.ComponentBuilder]:
-    container_components = []
+    container_components: list[hikari.api.special_endpoints.ContainerBuilderComponentsT] = []
     for reminder in reminders:
         timestamp = int(reminder.expire_at.timestamp())
 

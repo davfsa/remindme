@@ -8,8 +8,8 @@ import hikari
 import lightbulb
 
 InteractionT_co = typing.TypeVar("InteractionT_co", bound="InteractionProtocol", covariant=True)
-ContextT = typing.TypeVar("ContextT", bound="ContextProtocol")
-HandlerT = typing.TypeVar("HandlerT", bound="BaseInteractionHandler")
+ContextT = typing.TypeVar("ContextT", bound="ContextProtocol[typing.Any]")
+HandlerT = typing.TypeVar("HandlerT", bound="BaseInteractionHandler[typing.Any, typing.Any]")
 
 if typing.TYPE_CHECKING:
     import contextvars
@@ -33,20 +33,20 @@ class BaseInteractionHandler(typing.Generic[InteractionT_co, ContextT]):
     _interaction_type_: type[InteractionT_co] = NotImplemented
 
     def __init__(self, client: lightbulb.Client) -> None:
-        if self._context_type_ is NotImplemented:
+        if self._context_type_ is NotImplemented:  # type: ignore[reportUnnecessaryComparison]
             msg = "'_context_type_' has not been set"
             raise RuntimeError(msg)
 
-        if self._interaction_type_ is NotImplemented:
+        if self._interaction_type_ is NotImplemented:  # type: ignore[reportUnnecessaryComparison]
             msg = "'_interaction_type_' has not been set"
             raise RuntimeError(msg)
 
         self._client = client
-        self._handlers: dict[str, InteractionCallbackT] = {}
+        self._handlers: dict[str, InteractionCallbackT[ContextT]] = {}
 
         app = client.app
         assert isinstance(app, hikari.InteractionServerAware)
-        app.interaction_server.set_listener(self._interaction_type_, self._handle_interaction, replace=True)  # type: ignore
+        app.interaction_server.set_listener(self._interaction_type_, self._handle_interaction, replace=True)  # type: ignore[reportCallIssue]
 
     async def _handle_interaction(self, interaction: InteractionProtocol) -> typing.AsyncGenerator[None]:
         callback = self._handlers.get(interaction.custom_id.split(":")[0])
@@ -60,7 +60,7 @@ class BaseInteractionHandler(typing.Generic[InteractionT_co, ContextT]):
         event_wait_task = asyncio.create_task(ir.wait())
         tasks = (event_wait_task, callback_task)
 
-        finished, unfinished = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        finished, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
 
         yield None
 
@@ -98,7 +98,7 @@ class BaseLoadable(lightbulb.Loadable, typing.Generic[HandlerT], abc.ABC):
 
     _handler_contextvar_: contextvars.ContextVar[HandlerT] = NotImplemented
 
-    def __init__(self, common_prefix: str, callback: InteractionCallbackT) -> None:
+    def __init__(self, common_prefix: str, callback: InteractionCallbackT[typing.Any]) -> None:
         if self._handler_contextvar_ is NotImplemented:
             msg = "'_handler_contextvar_' has not been set"
             raise RuntimeError(msg)

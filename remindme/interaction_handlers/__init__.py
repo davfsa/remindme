@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from remindme.interaction_handlers.components import ComponentContext
-from remindme.interaction_handlers.components import ComponentHandler
-from remindme.interaction_handlers.components import ComponentLoadable
-from remindme.interaction_handlers.modals import ModalContext
-from remindme.interaction_handlers.modals import ModalHandler
-from remindme.interaction_handlers.modals import ModalLoadable
+from remindme.interaction_handlers.components import ComponentContext as ComponentContext
+from remindme.interaction_handlers.components import ComponentHandler as ComponentHandler
+from remindme.interaction_handlers.components import ComponentLoadable as ComponentLoadable
+from remindme.interaction_handlers.modals import ModalContext as ModalContext
+from remindme.interaction_handlers.modals import ModalHandler as ModalHandler
+from remindme.interaction_handlers.modals import ModalLoadable as ModalLoadable

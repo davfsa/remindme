@@ -28,6 +28,11 @@ types = [
 [tool.uv.sources]
 hikari = { git = "https://github.com/hikari-py/hikari", rev = "4a5cb0370aefd28e8a5391213cec68f88ecf3a1f" }
 
+[tool.pyright]
+include = ["remindme"]
+exclude = ["remindme/db/*"]
+typeCheckingMode = "strict"
+
 [tool.ruff]
 line-length = 120
 target-version = "py313"
