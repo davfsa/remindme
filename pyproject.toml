@@ -17,7 +17,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "ruff==0.12.11",
+    "ruff==0.12.12",
     "pyright==1.1.405",
     { include-group = "types" },
 ]
