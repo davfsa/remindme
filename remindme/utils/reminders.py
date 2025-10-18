@@ -52,7 +52,7 @@ async def create_reminder(
     reference_channel_id: int | None = None,
     reference_guild_id: int | None = None,
 ) -> None:
-    await ctx.defer(ephemeral=not public_ack)
+    # await ctx.defer(ephemeral=not public_ack)
 
     description = description or "*No description provided*"
 
@@ -78,16 +78,20 @@ async def create_reminder(
 
     assert reminder is not None
 
-    response_id = await ctx.respond(
-        components=components.make_create_reminder_component(reminder), ephemeral=not public_ack
+    flags = hikari.MessageFlag.NONE if public_ack else hikari.MessageFlag.EPHEMERAL
+    callback_info = await ctx.interaction.create_initial_response(
+        hikari.ResponseType.MESSAGE_CREATE, components=components.make_create_reminder_component(reminder), flags=flags
     )
 
     if reference_message_id is None:
-        response = await ctx.fetch_response(response_id)
-
         # If the message was sent as an ephemeral (either by the users selection or Discords)
         # then do a best-effort and link to the messages surrounding when the command was executed
-        linked_message_id = ctx.interaction.id if response.flags & hikari.MessageFlag.EPHEMERAL != 0 else response.id
+        assert isinstance(callback_info.interaction.response_message_id, hikari.Snowflake)
+        linked_message_id = (
+            ctx.interaction.id
+            if callback_info.interaction.response_message_ephemeral
+            else callback_info.interaction.response_message_id
+        )
 
         await queries.add_reminder_reference_message(
             id_=reminder.id,

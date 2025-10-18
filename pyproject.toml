@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 classifiers = ["Private :: Do not Upload"]
 dependencies = [
-    "hikari[speedups,server]~=2.3",
+    "hikari[speedups,server]~=2.4",
     "hikari-lightbulb[crontrigger]~=3.0",
     "confspec~=0.0.3",
     "ruamel-yaml~=0.18",
@@ -24,9 +24,6 @@ dev = [
 types = [
     "asyncpg-stubs~=0.30",
 ]
-
-[tool.uv.sources]
-hikari = { git = "https://github.com/hikari-py/hikari", rev = "4a5cb0370aefd28e8a5391213cec68f88ecf3a1f" }
 
 [tool.pyright]
 include = ["remindme"]
