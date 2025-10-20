@@ -331,11 +331,11 @@ wheels = [
 
 [[package]]
 name = "confspec"
-version = "0.0.4"
+version = "0.0.5"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/4e/95/296f5e39c967ee6c054211d55608e70362461b04dceda148c8cacb4cac8b/confspec-0.0.4.tar.gz", hash = "sha256:f004813c5f413eb16ea0d9f38f2c5fa2058902bcb0be6f5d87e4bb94041fba6e", size = 65016, upload-time = "2025-10-17T09:02:38.005Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d9/62/d3a900cff5b9eefa4f1716e45c6358302713ce263eff637455fba97a8378/confspec-0.0.5.tar.gz", hash = "sha256:49faf2f1fd64b63da74790f62b4348fd658340d9ec227c4c95e808ebeb48b036", size = 66530, upload-time = "2025-10-20T14:39:52.42Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/43/0c/e1f77417a3cf98c5b475442e04bc729d1e6fbc92d6e5c0dad18828d9c474/confspec-0.0.4-py3-none-any.whl", hash = "sha256:a4d97ccf604c783420f6633e3a284efcedce2295a85e261c5a259b638756893f", size = 16857, upload-time = "2025-10-17T09:02:36.153Z" },
+    { url = "https://files.pythonhosted.org/packages/19/fb/b622edac3422f448975f2eb4915ef8d87eba2cc501d18c825713eeca4495/confspec-0.0.5-py3-none-any.whl", hash = "sha256:042dcbc368173163d2c1bbb2a9f58ba4d17c98fd0c6e8e97e6a7972faf8ef57f", size = 17213, upload-time = "2025-10-20T14:39:51.042Z" },
 ]
 
 [[package]]
